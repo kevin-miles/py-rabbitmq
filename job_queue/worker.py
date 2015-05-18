@@ -4,7 +4,9 @@ import time
 connection = pika.BlockingConnection(pika.ConnectionParameters(
                'localhost'))
 channel = connection.channel()
-channel.queue_declare(queue='job')
+# RabbitMQ doesn't allow you to redefine an existing queue with different parameters
+# and will return an error to any program that tries to do that.
+channel.queue_declare(queue='job_durable', durable=True)
 
 print ' [*] Waiting for messages. To exit press CTRL+C'
 channel.start_consuming()
@@ -17,6 +19,6 @@ def callback(ch, method, properties, body):
     ch.basic_ack(delivery_tag = method.delivery_tag)
 
 channel.basic_consume(callback,
-                      queue='job')
+                      queue='job_durable')
 
 channel.start_consuming()
